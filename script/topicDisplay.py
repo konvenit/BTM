@@ -5,6 +5,8 @@
 #    mat/pw_z.k20
 
 import sys
+import io
+import unicodedata, re
 
 # return:    {wid:w, ...}
 def read_voca(pt):
@@ -18,7 +20,7 @@ def read_pz(pt):
     return [float(p) for p in open(pt).readline().split()]
     
 # voca = {wid:w,...}
-def dispTopics(pt, voca, pz):
+def dispTopics(pt, voca, pz, K):
     k = 0
     topics = []
     for l in open(pt):
@@ -29,19 +31,23 @@ def dispTopics(pt, voca, pz):
         tmps = ' '.join(['%s:%f' % (voca[w],v) for w,v in wvs[:10]])
         topics.append((pz[k], tmps))
         k += 1
-        
-    print 'p(z)\t\tTop words'
-    for pz, s in sorted(topics, reverse=True):
-        print '%f\t%s' % (pz, s)
+
+    with io.FileIO("result" + str(K) + ".txt", "w") as file:
+        print 'p(z)\t\tTop words'
+        i = 1
+        for pz, s in sorted(topics, reverse=True):
+            print '%f\t%s' % (pz, s)
+            file.write(str(i) + " " + '%f\t%s' % (pz, s))
+            file.write("\n")
+            i= i + 1
 
 if __name__ == '__main__':
-    if len(sys.argv) < 4:
-        print 'Usage: python %s <model_dir> <K> <voca_pt>' % sys.argv[0]
-        print '\tmodel_dir    the output dir of BTM'
-        print '\tK    the number of topics'
-        print '\tvoca_pt    the vocabulary file'
-        exit(1)
-        
+
+    # sys.argv= ['topicDisplay.py', '../output/model/', '26', '../output/voca.txt']
+    print "-----Start----"
+    print sys.argv
+
+    print("k number : " + str(sys.argv[2]))
     model_dir = sys.argv[1]
     K = int(sys.argv[2])
     voca_pt = sys.argv[3]
@@ -53,4 +59,4 @@ if __name__ == '__main__':
     pz = read_pz(pz_pt)
     
     zw_pt = model_dir + 'k%d.pw_z' %  K
-    dispTopics(zw_pt, voca, pz)
+    dispTopics(zw_pt, voca, pz, K)
